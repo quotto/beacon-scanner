@@ -1,7 +1,8 @@
 const filter = { acceptAllAdvertisements: true };
-const options = { keepRepeatedDevices: false, acceptAllAdvertisements: true };
+const options = { keepRepeatedDevices: true, acceptAllAdvertisements: true };
 
 const beaconList = document.getElementById("beacon-list");
+const detectDevices = {};
 // Bluetoothのスキャンを開始する関数
 async function startScan() {
   try {
@@ -12,16 +13,24 @@ async function startScan() {
           console.log(JSON.stringify(event));
           const device = event.device;
           // 検出されたデバイスの情報を表示する
-          beaconList.innerHTML = '';
-          const rssi = device.adData.rssi;
+          const rssi = event.rssi;
           const name = device.name ? device.name : 'Unknown Device';
           const deviceId = device.id;
-          beaconList.innerHTML += `
-              <tr>
-                <td>${deviceId}</td>
-                <td>${name}</td>
-                <td>${rssi} dBm</td>
-              </tr>`;
+
+          if(Object.keys(detectDevices).indexOf(deviceId) >= 0) {
+            const deviceRow = document.getElementById(deviceId);
+            deviceRow.children[0].innerHTML = deviceId
+            deviceRow.children[1].innerHTML = name
+            deviceRow.children[2].innerHTML = `${rssi} dBm`
+          } else {
+            detectDevices[deviceId]=rssi
+            beaconList.innerHTML += `
+                <p id="${deviceId}">
+                  <span>${deviceId}</span>
+                  <span>${name}</span>
+                  <span>${rssi} dBm</span>
+                </p>`;
+          }
         })
       }).catch(error => {
         console.error(error);
